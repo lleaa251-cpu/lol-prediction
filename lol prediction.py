@@ -15,48 +15,31 @@ import xgboost as xgb
 import warnings
 warnings.filterwarnings("ignore")
 
-
-# ─────────────────────────────────────────
-# 1. 載入資料
-# ─────────────────────────────────────────
 def load_data(filepath: str) -> pd.DataFrame:
     """載入 CSV 資料集"""
     df = pd.read_csv(filepath)
-    print(f"✅ 資料載入成功！共 {len(df)} 筆，{df.shape[1]} 個欄位")
+    print(f"資料載入成功！共 {len(df)} 筆，{df.shape[1]} 個欄位")
     print(df.head())
     return df
 
-
-# ─────────────────────────────────────────
-# 2. 特徵工程
-# ─────────────────────────────────────────
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
-    """新增差值特徵"""
     df = df.copy()
-
     # 金幣優勢
     if "blueGold" in df.columns and "redGold" in df.columns:
         df["goldDiff"] = df["blueGold"] - df["redGold"]
-
     # 經驗值優勢
     if "blueTotalExperience" in df.columns and "redTotalExperience" in df.columns:
         df["expDiff"] = df["blueTotalExperience"] - df["redTotalExperience"]
-
     # KDA 差
     if all(c in df.columns for c in ["blueKills", "redKills"]):
         df["killDiff"] = df["blueKills"] - df["redKills"]
-
     # CS 差
     if all(c in df.columns for c in ["blueTotalMinionsKilled", "redTotalMinionsKilled"]):
         df["csDiff"] = df["blueTotalMinionsKilled"] - df["redTotalMinionsKilled"]
 
-    print(f"✅ 特徵工程完成，新增欄位後共 {df.shape[1]} 個特徵")
+    print(f"特徵工程完成，新增欄位後共 {df.shape[1]} 個特徵")
     return df
-
-
-# ─────────────────────────────────────────
-# 3. 資料前處理
-# ─────────────────────────────────────────
+    
 def preprocess(df: pd.DataFrame, target: str = "blueWins"):
     """分割特徵與標籤、標準化"""
     df = df.dropna()
@@ -71,21 +54,16 @@ def preprocess(df: pd.DataFrame, target: str = "blueWins"):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    print(f"✅ 訓練集：{len(X_train)} 筆 | 測試集：{len(X_test)} 筆")
+    print(f"訓練集：{len(X_train)} 筆 | 測試集：{len(X_test)} 筆")
     return X_train, X_test, X_train_scaled, X_test_scaled, y_train, y_test, X.columns
-
-
-# ─────────────────────────────────────────
-# 4. 訓練模型
-# ─────────────────────────────────────────
+    
 def train_random_forest(X_train, y_train):
     """Random Forest"""
     model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42, n_jobs=-1)
     model.fit(X_train, y_train)
-    print("✅ Random Forest 訓練完成")
+    print("Random Forest 訓練完成")
     return model
-
-
+    
 def train_xgboost(X_train_scaled, y_train):
     """XGBoost"""
     model = xgb.XGBClassifier(
@@ -98,13 +76,9 @@ def train_xgboost(X_train_scaled, y_train):
         random_state=42,
     )
     model.fit(X_train_scaled, y_train)
-    print("✅ XGBoost 訓練完成")
+    print("XGBoost 訓練完成")
     return model
 
-
-# ─────────────────────────────────────────
-# 5. 評估
-# ─────────────────────────────────────────
 def evaluate(model, X_test, y_test, model_name: str):
     """輸出準確率與分類報告"""
     y_pred = model.predict(X_test)
@@ -114,10 +88,6 @@ def evaluate(model, X_test, y_test, model_name: str):
     print(classification_report(y_test, y_pred, target_names=["紅方勝", "藍方勝"]))
     return y_pred, acc
 
-
-# ─────────────────────────────────────────
-# 6. 視覺化
-# ─────────────────────────────────────────
 def plot_feature_importance(model, feature_names, model_name: str, top_n: int = 15):
     """特徵重要性長條圖"""
     importances = pd.Series(model.feature_importances_, index=feature_names)
@@ -126,13 +96,12 @@ def plot_feature_importance(model, feature_names, model_name: str, top_n: int = 
     fig, ax = plt.subplots(figsize=(9, 6))
     colors = plt.cm.RdYlGn(np.linspace(0.3, 0.9, len(top)))
     top.plot(kind="barh", ax=ax, color=colors)
-    ax.set_title(f"🏆 Top {top_n} 特徵重要性 [{model_name}]", fontsize=14)
+    ax.set_title(f"Top {top_n} 特徵重要性 [{model_name}]", fontsize=14)
     ax.set_xlabel("Importance Score")
     plt.tight_layout()
     plt.savefig(f"feature_importance_{model_name.lower().replace(' ', '_')}.png", dpi=150)
     plt.show()
-    print(f"✅ 特徵重要性圖已儲存")
-
+    print(f"特徵重要性圖已儲存")
 
 def plot_confusion_matrix(y_test, y_pred, model_name: str):
     """混淆矩陣"""
@@ -148,10 +117,6 @@ def plot_confusion_matrix(y_test, y_pred, model_name: str):
     plt.savefig(f"confusion_matrix_{model_name.lower().replace(' ', '_')}.png", dpi=150)
     plt.show()
 
-
-# ─────────────────────────────────────────
-# 7. 主程式
-# ─────────────────────────────────────────
 if __name__ == "__main__":
     # ── 資料路徑（Kaggle: high_diamond_ranked_10min.csv）
     DATA_PATH = "high_diamond_ranked_10min.csv"
