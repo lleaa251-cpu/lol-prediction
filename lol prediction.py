@@ -136,8 +136,8 @@ if __name__ == "__main__":
     xgb_pred, xgb_acc = evaluate(xgb_model, X_test_s, y_test, "XGBoost")
     plot_confusion_matrix(y_test, xgb_pred, "XGBoost")
 
-    print(f"\n🏅 模型比較")
+    print(f"\n 模型比較")
     print(f"   Random Forest 準確率：{rf_acc:.4f}")
     print(f"   XGBoost       準確率：{xgb_acc:.4f}")
     winner = "XGBoost" if xgb_acc >= rf_acc else "Random Forest"
-    print(f"   🥇 最佳模型：{winner}")
+    print(f" 最佳模型：{winner}")
